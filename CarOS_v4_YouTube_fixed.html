@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CarOS v4.0 — Бортовий комп'ютер автомобіля</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.35);
+            --accent-soft: rgba(6, 182, 212, 0.14);
+            --brightness: 1;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #05080f;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .font-mono-tech {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        #app-brightness-layer {
+            width: 100%;
+            height: 100%;
+            filter: brightness(var(--brightness));
+            transition: filter 0.2s ease;
+        }
+
+        /* Динамічні шпалери */
+        .wp-space {
+            background: radial-gradient(circle at 20% 20%, #172554 0%, #090d16 55%, #03050a 100%);
+        }
+        .wp-carbon {
+            background-color: #0a0d14;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px), radial-gradient(#0f172a 1px, #0a0d14 1px);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+        }
+        .wp-synthwave {
+            background: linear-gradient(160deg, #1e1b4b 0%, #3b0764 45%, #090d16 100%);
+        }
+        .wp-forest {
+            background: radial-gradient(circle at 80% 15%, #064e3b 0%, #071318 55%, #04070a 100%);
+        }
+        .wp-cyber {
+            background: linear-gradient(135deg, #082f49 0%, #0c1426 50%, #05080f 100%);
+        }
+        .wp-emerald {
+            background: linear-gradient(145deg, #022c22 0%, #0f172a 60%, #05080f 100%);
+        }
+        .wp-sunset {
+            background: radial-gradient(circle at 85% 20%, #7c2d12 0%, #1c1917 50%, #090a0f 100%);
+        }
+        .wp-oled {
+            background: #000000;
+        }
+
+        /* Скломорфізм */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.62);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(148, 163, 184, 0.28);
+            background: rgba(30, 41, 59, 0.72);
+        }
+
+        .accent-text {
+            color: var(--accent);
+        }
+
+        .accent-bg {
+            background-color: var(--accent);
+        }
+
+        .accent-border {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 22px var(--accent-glow);
+        }
+
+        .nav-btn-active {
+            background: var(--accent-soft);
+            border-color: var(--accent) !important;
+            color: #ffffff;
+            box-shadow: 0 0 18px var(--accent-glow);
+        }
+
+        /* Анімація еквалайзера */
+        @keyframes eqWave {
+            0%, 100% { height: 22%; }
+            50% { height: 95%; }
+        }
+        .eq-bar {
+            width: 4px;
+            border-radius: 9999px;
+            background-color: var(--accent);
+            height: 25%;
+        }
+        .eq-playing .eq-bar:nth-child(1) { animation: eqWave 0.65s ease-in-out infinite 0.05s; }
+        .eq-playing .eq-bar:nth-child(2) { animation: eqWave 0.50s ease-in-out infinite 0.20s; }
+        .eq-playing .eq-bar:nth-child(3) { animation: eqWave 0.75s ease-in-out infinite 0.10s; }
+        .eq-playing .eq-bar:nth-child(4) { animation: eqWave 0.55s ease-in-out infinite 0.30s; }
+        .eq-playing .eq-bar:nth-child(5) { animation: eqWave 0.68s ease-in-out infinite 0.15s; }
+
+        /* Анімація автомобіля */
+        @keyframes radarPulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+        .car-aura {
+            animation: radarPulse 3.2s infinite ease-in-out;
+        }
+
+        /* Кастомний скролбар */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+
+        /* Повзунок гучності */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(51, 65, 85, 0.8);
+            height: 6px;
+            border-radius: 999px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .scale-large {
+            font-size: 1.08rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-brightness-layer">
+        <div id="wallpaper-bg" class="wp-space w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500">
+            
+            <!-- Спливаючі повідомлення (замість alert) -->
+            <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+            <!-- ========================================== -->
+            <!-- ЛІВА НАВІГАЦІЙНА ПАНЕЛЬ (DOCK BAR)         -->
+            <!-- ========================================== -->
+            <aside class="glass-panel rounded-3xl p-2.5 sm:p-3 flex md:flex-col justify-between items-center md:w-28 lg:w-32 shrink-0 gap-2 z-20">
+                
+                <!-- Годинник та статус мережі -->
+                <div class="flex md:flex-col items-center gap-2 md:gap-1 shrink-0">
+                    <div class="text-center">
+                        <div id="dock-time" class="font-mono-tech text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-none">15:37</div>
+                        <div id="dock-date" class="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase mt-1">ВТ, 17 ЛИС</div>
+                    </div>
+                    <div class="hidden sm:flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                        <span class="text-cyan-400 flex items-center gap-0.5"><i data-lucide="wifi" class="w-3 h-3"></i>5G</span>
+                        <span class="text-slate-600">|</span>
+                        <span class="text-emerald-400 flex items-center gap-0.5"><i data-lucide="navigation" class="w-3 h-3"></i>GPS</span>
+                    </div>
+                </div>
+
+                <!-- Кнопки вкладок -->
+                <nav class="flex md:flex-col items-center gap-1.5 sm:gap-2 overflow-x-auto md:overflow-y-auto max-w-full py-1 px-1">
+                    <button onclick="switchTab('radio')" id="nav-radio" class="nav-btn nav-btn-active flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-2xl border border-slate-800/80 bg-slate-900/50 text-slate-300 hover:text-white transition shrink-0">
+                        <i data-lucide="radio" class="w-5 h-5 sm:w-6 sm:h-6 mb-1"></i>
+                        <span class="text-[11px] font-bold">Радіо</span>
+                    </button>
+
+                    <button onclick="switchTab('media')" id="nav-media" class="nav-btn flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-2xl border border-slate-800/80 bg-slate-900/50 text-slate-300 hover:text-white transition shrink-0 relative">
+                        <span id="media-live-badge" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        <i data-lucide="play-square" class="w-5 h-5 sm:w-6 sm:h-6 mb-1"></i>
+                        <span class="text-[11px] font-bold">Медіа / YT</span>
+                    </button>
+
+                    <button onclick="switchTab('calc')" id="nav-calc" class="nav-btn flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-2xl border border-slate-800/80 bg-slate-900/50 text-slate-300 hover:text-white transition shrink-0">
+                        <i data-lucide="calculator" class="w-5 h-5 sm:w-6 sm:h-6 mb-1"></i>
+                        <span class="text-[11px] font-bold">Калькулятор</span>
+                    </button>
+
+                    <button onclick="switchTab('time')" id="nav-time" class="nav-btn flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-2xl border border-slate-800/80 bg-slate-900/50 text-slate-300 hover:text-white transition shrink-0">
+                        <i data-lucide="clock" class="w-5 h-5 sm:w-6 sm:h-6 mb-1"></i>
+                        <span class="text-[11px] font-bold">Час</span>
+                    </button>
+
+                    <button onclick="switchTab('car')" id="nav-car" class="nav-btn flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-2xl border border-slate-800/80 bg-slate-900/50 text-slate-300 hover:text-white transition shrink-0">
+                        <i data-lucide="car-front" class="w-5 h-5 sm:w-6 sm:h-6 mb-1"></i>
+                        <span class="text-[11px] font-bold">Авто</span>
+                    </button>
+
+                    <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-2xl border border-slate-800/80 bg-slate-900/50 text-slate-300 hover:text-white transition shrink-0">
+                        <i data-lucide="sliders-horizontal" class="w-5 h-5 sm:w-6 sm:h-6 mb-1"></i>
+                        <span class="text-[11px] font-bold">Обої</span>
+                    </button>
+                </nav>
+
+                <!-- Міні клімат-контроль -->
+                <div class="hidden md:flex flex-col items-center bg-slate-950/80 border border-slate-800/90 rounded-2xl p-2 w-full">
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider text-cyan-400 flex items-center gap-1 mb-1">
+                        <i data-lucide="snowflake" class="w-3 h-3"></i> Клімат
+                    </span>
+                    <div class="flex items-center justify-between w-full gap-1">
+                        <button onclick="changeClimate(-0.5)" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center font-bold text-base text-cyan-300">−</button>
+                        <span id="climate-temp" class="font-mono-tech text-sm font-extrabold text-white">21.5°</span>
+                        <button onclick="changeClimate(0.5)" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center font-bold text-base text-rose-400">+</button>
+                    </div>
+                    <div class="text-[10px] text-amber-400/90 font-semibold mt-1">Зовні +12°C</div>
+                </div>
+            </aside>
+
+            <!-- ========================================== -->
+            <!-- ОСНОВНА РОБОЧА ОБЛАСТЬ                     -->
+            <!-- ========================================== -->
+            <main class="flex-1 flex flex-col gap-2.5 sm:gap-3 overflow-hidden min-w-0">
+
+                <!-- ВЕРХНЯ ПЛАШКА АКТИВНОГО ПЛЕЄРА -->
+                <header id="top-player-bar" class="hidden glass-panel accent-border rounded-3xl px-3.5 py-2.5 sm:px-5 sm:py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 z-10 transition-all">
+                    <!-- Інформація про станцію / медіа -->
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-slate-900 border border-slate-700/80 flex flex-col items-center justify-center shrink-0">
+                            <span id="bar-freq" class="font-mono-tech text-xs sm:text-sm font-extrabold accent-text leading-none">103.1</span>
+                            <span id="bar-band" class="text-[9px] font-bold text-slate-400 uppercase mt-0.5">FM</span>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <span id="bar-status-pill" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400">В ЕФІРІ</span>
+                                <span id="bar-genre" class="text-xs text-slate-400 truncate">Поп / Хіти</span>
+                            </div>
+                            <h2 id="bar-title" class="text-base sm:text-lg font-extrabold text-white truncate mt-0.5">Люкс ФМ Україна</h2>
+                        </div>
+
+                        <!-- Анімований еквалайзер -->
+                        <div id="bar-eq" class="hidden sm:flex items-end gap-1 h-7 px-2">
+                            <div class="eq-bar"></div>
+                            <div class="eq-bar"></div>
+                            <div class="eq-bar"></div>
+                            <div class="eq-bar"></div>
+                            <div class="eq-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки керування плеєром -->
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <button onclick="prevStation()" title="Попередня" class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 flex items-center justify-center text-white transition">
+                            <i data-lucide="skip-back" class="w-5 h-5"></i>
+                        </button>
+
+                        <button onclick="togglePlayPause()" id="bar-play-btn" title="Пауза / Відтворити" class="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl accent-bg text-slate-950 font-bold hover:brightness-110 active:scale-95 flex items-center justify-center shadow-lg transition">
+                            <i id="bar-play-icon" data-lucide="pause" class="w-6 h-6"></i>
+                        </button>
+
+                        <button onclick="nextStation()" title="Наступна" class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 flex items-center justify-center text-white transition">
+                            <i data-lucide="skip-forward" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Гучність та закриття -->
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <button onclick="toggleMute()" id="bar-mute-btn" class="w-10 h-10 rounded-2xl bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-200 transition">
+                            <i id="bar-vol-icon" data-lucide="volume-2" class="w-5 h-5"></i>
+                        </button>
+                        <input id="bar-volume-slider" type="range" min="0" max="100" value="80" oninput="setVolume(this.value)" class="w-20 sm:w-28">
+                        <span id="bar-vol-text" class="font-mono-tech text-xs font-bold text-slate-300 w-8 text-right hidden sm:inline">80%</span>
+
+                        <button onclick="closeTopPlayer()" title="Вимкнути" class="w-10 h-10 rounded-2xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/30 flex items-center justify-center text-rose-400 transition ml-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- ========================================== -->
+                <!-- ВКЛАДКА 1: РАДІО                           -->
+                <!-- ========================================== -->
+                <section id="tab-radio" class="tab-view flex-1 glass-panel rounded-3xl p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2.5">
+                                <span class="w-9 h-9 rounded-2xl accent-bg text-slate-950 flex items-center justify-center">
+                                    <i data-lucide="radio" class="w-5 h-5"></i>
+                                </span>
+                                Автомобільний FM / Онлайн Тюнер
+                            </h1>
+                            <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Натисніть на станцію, щоб увімкнути ефір та відкрити верхню панель керування</p>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-slate-950/70 border border-slate-800 px-3 py-1.5 rounded-2xl text-xs">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-slate-300 font-semibold">RDS + Резервний FM-синтезатор активні</span>
+                        </div>
+                    </div>
+
+                    <!-- Сітка радіостанцій -->
+                    <div id="radio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+                    <!-- Додавання власної станції -->
+                    <div class="glass-card rounded-2xl p-3.5 mt-auto">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                            <i data-lucide="plus-circle" class="w-4 h-4 accent-text"></i>
+                            Додати власну радіохвилю (HTTPS потік MP3 / AAC)
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input id="custom-radio-name" type="text" placeholder="Назва (напр. Моє Радіо)" class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 sm:w-1/3">
+                            <input id="custom-radio-url" type="url" placeholder="https://example.com/stream.mp3" class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 flex-1">
+                            <button onclick="addCustomRadio()" class="accent-bg text-slate-950 font-extrabold text-sm px-5 py-2.5 rounded-xl hover:brightness-110 active:scale-95 transition shrink-0">
+                                + Додати
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ВКЛАДКА 2: МЕДІА / YOUTUBE                 -->
+                <!-- ========================================== -->
+                <section id="tab-media" class="tab-view hidden flex-1 glass-panel rounded-3xl p-4 sm:p-5 flex flex-col gap-3.5 overflow-y-auto">
+                    <!-- Верхній рядок: Пошук та вставка URL -->
+                    <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5 shrink-0">
+                        <div class="flex items-center gap-2 bg-slate-950/80 border border-slate-800 rounded-2xl px-3 py-2 flex-1">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                            <input id="yt-search-input" type="text" onkeydown="if(event.key==='Enter') searchYoutube()" placeholder="Пошук у YouTube (напр. українська музика в авто)..." class="bg-transparent text-sm text-white placeholder-slate-500 w-full focus:outline-none">
+                            <button onclick="searchYoutube()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shrink-0">
+                                Знайти
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-slate-950/80 border border-slate-800 rounded-2xl px-3 py-2 flex-1">
+                            <i data-lucide="link" class="w-4 h-4 text-red-400 shrink-0"></i>
+                            <input id="yt-url-input" type="text" onkeydown="if(event.key==='Enter') loadCustomYoutube()" placeholder="Вставте посилання YouTube або ID відео..." class="bg-transparent text-sm text-white placeholder-slate-500 w-full focus:outline-none">
+                            <button onclick="loadCustomYoutube()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shrink-0 flex items-center gap-1">
+                                <i data-lucide="play" class="w-3.5 h-3.5"></i> Відкрити
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Основна зона відео + добірки -->
+                    <div class="flex-1 flex flex-col lg:flex-row gap-3.5 min-h-0">
+                        <!-- Ліва частина: Плеєр -->
+                        <div class="flex-1 flex flex-col gap-2 min-h-[260px]">
+                            <div class="flex-1 bg-black rounded-3xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl">
+                                <!-- Панель вибору режиму відеоплеєра -->
+                                <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-slate-950 border-b border-slate-800 text-xs shrink-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-slate-400 font-semibold mr-1">Режим плеєра:</span>
+                                        <button onclick="setMediaMode('youtube')" id="btn-mode-youtube" class="px-2.5 py-1 rounded-xl font-bold bg-red-600 text-white transition">
+                                            YouTube Embed
+                                        </button>
+                                        <button onclick="setMediaMode('mp4')" id="btn-mode-mp4" class="px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition">
+                                            Авто-відео MP4 (Працює всюди)
+                                        </button>
+                                    </div>
+                                    <span id="media-mode-badge" class="text-[11px] font-mono-tech text-slate-400">YouTube Standard IFrame</span>
+                                </div>
+
+                                <!-- Контейнер YouTube -->
+                                <div id="youtube-container" class="relative flex-1 w-full h-full bg-black flex flex-col">
+                                    <iframe id="yt-iframe" class="w-full flex-1 border-0" src="https://www.youtube.com/embed/jfKfPfyJRdk?rel=0&amp;playsinline=1" title="YouTube Video Player" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                    <div class="bg-amber-500/10 border-t border-amber-500/25 px-3 py-1.5 text-[11px] text-amber-200/90 flex items-center justify-between gap-2">
+                                        <span>Для YouTube потрібне відкриття сторінки через HTTP/HTTPS (не напряму як file://): тоді браузер передає Referer і плеєр може завантажитися.</span>
+                                        <button onclick="setMediaMode('mp4')" class="px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold shrink-0">
+                                            Увімкнути MP4
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Контейнер надійного MP4 відеоплеєра -->
+                                <div id="mp4-container" class="hidden relative flex-1 w-full h-full bg-black flex flex-col justify-center">
+                                    <video id="car-mp4-video" class="w-full h-full object-cover" controls playsinline loop>
+                                        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                                    </video>
+                                </div>
+                            </div>
+
+                            <!-- Нижній рядок під відео -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-400 shrink-0">
+                                <span id="media-current-title" class="font-semibold text-slate-200 truncate">Зараз: Lofi Hip Hop Radio — Beats to Relax/Drive</span>
+                                <a id="yt-direct-link" href="https://www.youtube.com/watch?v=jfKfPfyJRdk" target="_blank" rel="noopener noreferrer" class="accent-text hover:underline font-bold flex items-center gap-1 shrink-0">
+                                    Відкрити відео напряму в YouTube ↗
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Права частина: Готові пресети -->
+                        <div class="w-full lg:w-80 flex flex-col gap-2.5 overflow-y-auto shrink-0">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                                Швидкий запуск у дорогу
+                            </div>
+
+                            <div class="space-y-2">
+                                <button onclick="playYoutubePreset('jfKfPfyJRdk', 'Lofi Hip Hop Radio — Beats to Relax/Drive')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="headphones" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-cyan-400">YouTube • Спокійна дорога</div>
+                                        <div class="text-sm font-bold text-white truncate">Lofi Hip Hop Radio 24/7</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="playYoutubePreset('4xDzrJKXOOY', 'Synthwave Radio — Beats to Chill/Drive')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="moon" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-purple-400">YouTube • Нічна траса</div>
+                                        <div class="text-sm font-bold text-white truncate">Synthwave Night Drive</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="playYoutubePreset('36YnV9STBqc', 'The Good Life Radio — Deep House Mix')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="disc" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-emerald-400">YouTube • Драйв мікс</div>
+                                        <div class="text-sm font-bold text-white truncate">Deep House Car Mix</div>
+                                    </div>
+                                </button>
+
+                                <div class="pt-1 border-t border-slate-800/80 text-[11px] font-bold uppercase text-emerald-400">
+                                    Гарантовані MP4 відео-потоки:
+                                </div>
+
+                                <button onclick="playMp4Preset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', 'Авто-візуалізація: Вогняний драйв (HD MP4)')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3 border-emerald-500/20">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="film" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-emerald-400">MP4 • Працює без обмежень</div>
+                                        <div class="text-sm font-bold text-white truncate">Тест-драйв візуалізація #1</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="playMp4Preset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4', 'Огляд Volkswagen GTI — Автомобільний канал (MP4)')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3 border-emerald-500/20">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="gauge" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-amber-400">MP4 • Авто-огляд</div>
+                                        <div class="text-sm font-bold text-white truncate">Volkswagen GTI Road Test</div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <div class="mt-auto bg-slate-950/70 border border-slate-800 rounded-2xl p-2.5 text-[11px] text-slate-400 flex items-center gap-2">
+                                <i data-lucide="volume-x" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+                                <span>Радіо автоматично ставиться на паузу при запуску відео.</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ВКЛАДКА 3: КАЛЬКУЛЯТОР ТА ПАЛЬНЕ           -->
+                <!-- ========================================== -->
+                <section id="tab-calc" class="tab-view hidden flex-1 glass-panel rounded-3xl p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-y-auto">
+                    <!-- Звичайний калькулятор -->
+                    <div class="glass-card rounded-3xl p-4 flex flex-col justify-between gap-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-extrabold text-white flex items-center gap-2">
+                                <i data-lucide="calculator" class="w-4 h-4 accent-text"></i> Бортовий калькулятор
+                            </span>
+                            <span id="calc-history" class="font-mono-tech text-xs text-slate-400 truncate max-w-[180px]">0</span>
+                        </div>
+
+                        <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-4 text-right">
+                            <div id="calc-display" class="font-mono-tech text-3xl sm:text-4xl font-extrabold text-white truncate">0</div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 flex-1">
+                            <button onclick="calcClear()" class="rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-extrabold text-lg py-3">C</button>
+                            <button onclick="calcBackspace()" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-lg py-3">⌫</button>
+                            <button onclick="calcInput('%')" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-lg py-3">%</button>
+                            <button onclick="calcInput('/')" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xl py-3">÷</button>
+
+                            <button onclick="calcInput('7')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">7</button>
+                            <button onclick="calcInput('8')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">8</button>
+                            <button onclick="calcInput('9')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">9</button>
+                            <button onclick="calcInput('*')" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xl py-3">×</button>
+
+                            <button onclick="calcInput('4')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">4</button>
+                            <button onclick="calcInput('5')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">5</button>
+                            <button onclick="calcInput('6')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">6</button>
+                            <button onclick="calcInput('-')" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xl py-3">−</button>
+
+                            <button onclick="calcInput('1')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">1</button>
+                            <button onclick="calcInput('2')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">2</button>
+                            <button onclick="calcInput('3')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">3</button>
+                            <button onclick="calcInput('+')" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xl py-3">+</button>
+
+                            <button onclick="calcInput('0')" class="col-span-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">0</button>
+                            <button onclick="calcInput('.')" class="rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-bold text-xl py-3">.</button>
+                            <button onclick="calcEqual()" class="rounded-2xl accent-bg text-slate-950 font-extrabold text-xl py-3 hover:brightness-110">=</button>
+                        </div>
+                    </div>
+
+                    <!-- Калькулятор витрати пального -->
+                    <div class="glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                                <i data-lucide="fuel" class="w-5 h-5 text-amber-400"></i>
+                                Розрахунок витрати пального та поїздки
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1">Введіть параметри маршруту для миттєвого підрахунку літрів та бюджету</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-300 block mb-1">Відстань маршруту (км)</label>
+                                <input id="fuel-dist" type="number" value="350" oninput="calculateFuel()" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 font-mono-tech text-lg font-bold text-white focus:outline-none focus:border-cyan-500">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 block mb-1">Середня витрата (л/100 км)</label>
+                                    <input id="fuel-cons" type="number" step="0.1" value="7.8" oninput="calculateFuel()" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 font-mono-tech text-lg font-bold text-white focus:outline-none focus:border-cyan-500">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 block mb-1">Ціна пального (грн/л)</label>
+                                    <input id="fuel-price" type="number" step="0.5" value="56.5" oninput="calculateFuel()" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl px-4 py-3 font-mono-tech text-lg font-bold text-white focus:outline-none focus:border-cyan-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 bg-slate-950/80 border border-slate-800 rounded-2xl p-4">
+                            <div>
+                                <div class="text-xs text-slate-400 font-semibold">Необхідно пального</div>
+                                <div id="fuel-res-liters" class="font-mono-tech text-2xl sm:text-3xl font-extrabold accent-text mt-1">27.3 л</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-400 font-semibold">Вартість поїздки</div>
+                                <div id="fuel-res-cost" class="font-mono-tech text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">1 542 грн</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ВКЛАДКА 4: ЧАС, СЕКУНДОМІР 0-100, ТАЙМЕР   -->
+                <!-- ========================================== -->
+                <section id="tab-time" class="tab-view hidden flex-1 glass-panel rounded-3xl p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto">
+                    <!-- Великий нічний годинник -->
+                    <div class="glass-card rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-widest accent-text">Бортовий хронометр</div>
+                            <div id="big-clock" class="font-mono-tech text-4xl sm:text-6xl font-extrabold text-white tracking-tight mt-1">15:37:00</div>
+                            <div id="big-date" class="text-sm text-slate-400 font-medium mt-1">Вівторок, 17 листопада 2026</div>
+                        </div>
+                        <div class="flex items-center gap-3 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-3">
+                            <i data-lucide="compass" class="w-8 h-8 accent-text"></i>
+                            <div>
+                                <div class="text-xs text-slate-400">Час у дорозі (сесія)</div>
+                                <div id="session-drive-time" class="font-mono-tech text-xl font-bold text-white">00:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
+                        <!-- Секундомір 0-100 -->
+                        <div class="glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-extrabold text-white flex items-center gap-2">
+                                    <i data-lucide="timer" class="w-4 h-4 text-emerald-400"></i> Секундомір розгону (0–100 км/год)
+                                </span>
+                            </div>
+
+                            <div id="sw-display" class="font-mono-tech text-4xl sm:text-5xl font-extrabold text-center text-white bg-slate-950/80 border border-slate-800 rounded-2xl py-4">
+                                00:00.00
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="swToggle()" id="sw-start-btn" class="rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3 text-sm transition">Старт</button>
+                                <button onclick="swLap()" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 text-sm transition">Коло / Відсічка</button>
+                                <button onclick="swReset()" class="rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 font-bold py-3 text-sm transition">Скинути</button>
+                            </div>
+
+                            <div id="sw-laps" class="max-h-28 overflow-y-auto space-y-1 text-xs font-mono-tech text-slate-300 pr-1"></div>
+                        </div>
+
+                        <!-- Таймер паркування -->
+                        <div class="glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-extrabold text-white flex items-center gap-2">
+                                    <i data-lucide="alarm-clock" class="w-4 h-4 text-amber-400"></i> Таймер паркування / відпочинку
+                                </span>
+                            </div>
+
+                            <div id="timer-display" class="font-mono-tech text-4xl sm:text-5xl font-extrabold text-center text-amber-400 bg-slate-950/80 border border-slate-800 rounded-2xl py-4">
+                                15:00
+                            </div>
+
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="setTimerMinutes(5)" class="rounded-xl bg-slate-800 hover:bg-slate-700 py-2 text-xs font-bold text-white">5 хв</button>
+                                <button onclick="setTimerMinutes(15)" class="rounded-xl bg-slate-800 hover:bg-slate-700 py-2 text-xs font-bold text-white">15 хв</button>
+                                <button onclick="setTimerMinutes(30)" class="rounded-xl bg-slate-800 hover:bg-slate-700 py-2 text-xs font-bold text-white">30 хв</button>
+                                <button onclick="setTimerMinutes(60)" class="rounded-xl bg-slate-800 hover:bg-slate-700 py-2 text-xs font-bold text-white">60 хв</button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="timerToggle()" id="timer-start-btn" class="rounded-2xl accent-bg text-slate-950 font-extrabold py-3 text-sm transition">Запустити таймер</button>
+                                <button onclick="timerReset()" class="rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 text-sm transition">Скинути</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ВКЛАДКА 5: АВТО / ТЕЛЕМЕТРІЯ               -->
+                <!-- ========================================== -->
+                <section id="tab-car" class="tab-view hidden flex-1 glass-panel rounded-3xl p-4 sm:p-5 flex flex-col justify-between gap-4 overflow-y-auto">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
+                                <i data-lucide="car-front" class="w-5 h-5 accent-text"></i>
+                                Стан автомобіля та датчики TPMS
+                            </h2>
+                            <p class="text-xs text-slate-400">Контроль тиску в шинах, заряду АКБ та вибір режиму руху</p>
+                        </div>
+
+                        <!-- Перемикач режимів руху -->
+                        <div class="flex items-center gap-1.5 bg-slate-950/90 border border-slate-800 p-1.5 rounded-2xl">
+                            <button onclick="setDriveMode('ECO')" id="mode-eco" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition">ECO</button>
+                            <button onclick="setDriveMode('COMFORT')" id="mode-comfort" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold accent-bg text-slate-950 transition">COMFORT</button>
+                            <button onclick="setDriveMode('SPORT')" id="mode-sport" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition">SPORT</button>
+                        </div>
+                    </div>
+
+                    <!-- Схема авто + показники -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center my-auto">
+                        <!-- Ліві шини -->
+                        <div class="space-y-3">
+                            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-semibold">Переднє ліве (FL)</div>
+                                    <div class="font-mono-tech text-2xl font-extrabold text-emerald-400 mt-0.5">2.4 Bar</div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold">OK • 28°C</span>
+                            </div>
+                            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-semibold">Заднє ліве (RL)</div>
+                                    <div class="font-mono-tech text-2xl font-extrabold text-emerald-400 mt-0.5">2.3 Bar</div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold">OK • 26°C</span>
+                            </div>
+                        </div>
+
+                        <!-- Центральний силует автомобіля -->
+                        <div class="flex flex-col items-center justify-center py-2">
+                            <div class="relative w-44 h-64 rounded-[3rem] bg-slate-900/90 border-2 accent-border car-aura flex flex-col items-center justify-between p-5 shadow-2xl">
+                                <div class="w-24 h-3 rounded-full bg-cyan-400/70 blur-[1px]"></div>
+                                <div class="w-28 h-24 rounded-2xl bg-slate-950 border border-slate-700/80 flex flex-col items-center justify-center text-center p-2">
+                                    <span id="car-mode-label" class="text-xs font-extrabold accent-text tracking-wider">COMFORT</span>
+                                    <span class="font-mono-tech text-lg font-extrabold text-white mt-1">READY</span>
+                                    <span class="text-[10px] text-slate-400">Системи в нормі</span>
+                                </div>
+                                <div class="w-24 h-2.5 rounded-full bg-rose-500/80 blur-[1px]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Праві шини -->
+                        <div class="space-y-3">
+                            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-semibold">Переднє праве (FR)</div>
+                                    <div class="font-mono-tech text-2xl font-extrabold text-emerald-400 mt-0.5">2.4 Bar</div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold">OK • 28°C</span>
+                            </div>
+                            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-semibold">Заднє праве (RR)</div>
+                                    <div class="font-mono-tech text-2xl font-extrabold text-emerald-400 mt-0.5">2.3 Bar</div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold">OK • 27°C</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Нижні картки телеметрії -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="text-xs text-slate-400">Напруга АКБ</div>
+                            <div class="font-mono-tech text-xl font-extrabold text-cyan-400 mt-1">14.2 V</div>
+                        </div>
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="text-xs text-slate-400">Темп. двигуна</div>
+                            <div class="font-mono-tech text-xl font-extrabold text-emerald-400 mt-1">90 °C</div>
+                        </div>
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="text-xs text-slate-400">Запас ходу</div>
+                            <div class="font-mono-tech text-xl font-extrabold text-amber-400 mt-1">480 км</div>
+                        </div>
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="text-xs text-slate-400">Середня витрата</div>
+                            <div class="font-mono-tech text-xl font-extrabold text-white mt-1">7.6 л/100</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ВКЛАДКА 6: ОБОЇ ТА НАЛАШТУВАННЯ            -->
+                <!-- ========================================== -->
+                <section id="tab-settings" class="tab-view hidden flex-1 glass-panel rounded-3xl p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
+                            <i data-lucide="palette" class="w-5 h-5 accent-text"></i>
+                            Обої та персоналізація CarOS v4.0
+                        </h2>
+                        <p class="text-xs text-slate-400">Налаштуйте фон екрана, колір підсвітки кнопок, яскравість та розмір шрифту</p>
+                    </div>
+
+                    <!-- Вбудовані 8 обоїв -->
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Вбудовані теми фону (8 варіантів)</div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <button onclick="setWallpaperPreset('wp-space', 'Глибокий космос')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-space border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Космос</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-carbon', 'Карбон')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-carbon border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Карбон</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-synthwave', 'Нічний неон')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-synthwave border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Неон</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-forest', 'Нічний ліс')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-forest border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Смарагд</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-cyber', 'Кібер-синій')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-cyber border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Кібер</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-emerald', 'Північне сяйво')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-emerald border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Сяйво</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-sunset', 'Вечірня траса')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-sunset border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">Захід</span>
+                            </button>
+                            <button onclick="setWallpaperPreset('wp-oled', 'Чистий OLED Чорний')" class="glass-card rounded-2xl p-2.5 flex items-center gap-2.5 text-left">
+                                <span class="w-8 h-8 rounded-xl wp-oled border border-slate-700 shrink-0"></span>
+                                <span class="text-xs font-bold text-white">OLED Чорний</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Власні обої (Файл або URL) -->
+                    <div class="glass-card rounded-2xl p-3.5 space-y-2.5">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Встановити власне фото на фон</div>
+                        <div class="flex flex-col sm:flex-row gap-2.5">
+                            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition shrink-0">
+                                <i data-lucide="image-plus" class="w-4 h-4 accent-text"></i>
+                                <span>Завантажити з пристрою</span>
+                                <input type="file" accept="image/*" onchange="uploadCustomWallpaper(event)" class="hidden">
+                            </label>
+                            <input id="custom-wp-url" type="url" placeholder="Або вставте URL зображення (https://...)" class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 flex-1 focus:outline-none focus:border-cyan-500">
+                            <button onclick="applyCustomWallpaperUrl()" class="accent-bg text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl hover:brightness-110 transition shrink-0">
+                                Застосувати
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Колір підсвітки, яскравість, масштаб -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-auto">
+                        <!-- Акцентний колір -->
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="text-xs font-bold text-slate-300 mb-2.5">Колір підсвітки інтерфейсу</div>
+                            <div class="flex items-center gap-2.5">
+                                <button onclick="setAccentColor('#06b6d4', 'rgba(6,182,212,0.35)', 'rgba(6,182,212,0.14)')" class="w-8 h-8 rounded-full bg-cyan-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
+                                <button onclick="setAccentColor('#10b981', 'rgba(16,185,129,0.35)', 'rgba(16,185,129,0.14)')" class="w-8 h-8 rounded-full bg-emerald-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
+                                <button onclick="setAccentColor('#f59e0b', 'rgba(245,158,11,0.35)', 'rgba(245,158,11,0.14)')" class="w-8 h-8 rounded-full bg-amber-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
+                                <button onclick="setAccentColor('#a855f7', 'rgba(168,85,247,0.35)', 'rgba(168,85,247,0.14)')" class="w-8 h-8 rounded-full bg-purple-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
+                                <button onclick="setAccentColor('#f43f5e', 'rgba(244,63,94,0.35)', 'rgba(244,63,94,0.14)')" class="w-8 h-8 rounded-full bg-rose-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
+                            </div>
+                        </div>
+
+                        <!-- Яскравість екрана -->
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-2.5">
+                                <span>Яскравість дисплея</span>
+                                <span id="brightness-label" class="font-mono-tech accent-text">100%</span>
+                            </div>
+                            <input type="range" min="40" max="115" value="100" oninput="setScreenBrightness(this.value)" class="w-full">
+                        </div>
+
+                        <!-- Масштаб тексту -->
+                        <div class="glass-card rounded-2xl p-3.5 flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-bold text-slate-300">Збільшений шрифт</div>
+                                <div class="text-[11px] text-slate-400">Зручніше під час руху</div>
+                            </div>
+                            <button onclick="toggleUiScale()" id="scale-toggle-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-extrabold text-white transition">
+                                Стандарт
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT ЛОГІКА CAROS v4.0               -->
+    <!-- ========================================== -->
+    <script>
+        // 1. БАЗА РАДІОСТАНЦІЙ (Перевірені потоки + 2 автономні FM-синтезатори)
+        const radioStations = [
+            { id: 'lux', freq: '103.1', name: 'Люкс ФМ', genre: 'Поп / Хіти • Україна', url: 'https://icecast.luxnet.ua/lux_mp3', type: 'stream' },
+            { id: 'maximum', freq: '104.6', name: 'Radio MAXIMUM', genre: 'Рок / Драйв • Україна', url: 'https://icecast.luxnet.ua/maximum_mp3', type: 'stream' },
+            { id: 'radio24', freq: '102.1', name: 'Радіо 24', genre: 'Новини / Музика • Україна', url: 'https://icecast.luxnet.ua/radio24_mp3', type: 'stream' },
+            { id: 'groove', freq: '98.5', name: 'SomaFM Groove Salad', genre: 'Ambient / Chillout', url: 'https://ice1.somafm.com/groovesalad-128-mp3', type: 'stream' },
+            { id: 'synth', freq: '101.4', name: 'SomaFM DEF CON / Synth', genre: 'Electronic / Cyber', url: 'https://ice1.somafm.com/defcon-128-mp3', type: 'stream' },
+            { id: 'truckers', freq: '106.8', name: 'TruckersFM', genre: 'Top 40 / Дорожні хіти', url: 'https://radio.truckers.fm/', type: 'stream' },
+            { id: 'paradise', freq: '95.2', name: 'Radio Paradise', genre: 'Eclectic Rock / Mix', url: 'https://stream.radioparadise.com/aac-128', type: 'stream' },
+            { id: 'fm-lofi', freq: '88.0', name: 'FM Lo-Fi Synth (Автономне)', genre: 'Вбудований синтезатор • 100% звук', url: '', type: 'synth-lofi' },
+            { id: 'fm-night', freq: '91.6', name: 'FM Night Drive (Автономне)', genre: 'Вбудований синтезатор • Ambient', url: '', type: 'synth-night' }
+        ];
+
+        // Стан плеєра та системи
+        const audioEl = new Audio();
+        audioEl.preload = 'none';
+
+        let currentStationIdx = -1;
+        let isPlaying = false;
+        let isMuted = false;
+        let currentVolume = 0.8;
+        let climateTemp = 21.5;
+        let sessionSeconds = 0;
+        let currentMediaMode = 'youtube';
+        let currentYtId = 'jfKfPfyJRdk';
+        let streamTimeout = null;
+
+        // ==========================================
+        // WEB AUDIO API: FM ТЮНЕР ТА АВТОНОМНИЙ СИНТЕЗ
+        // ==========================================
+        class CarAudioSynth {
+            constructor() {
+                this.ctx = null;
+                this.interval = null;
+                this.masterGain = null;
+                this.step = 0;
+            }
+
+            ensureContext() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.value = isMuted ? 0 : currentVolume * 0.35;
+                    this.masterGain.connect(this.ctx.destination);
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // Звук налаштування FM-хвилі при перемиканні
+            playTuningSweep() {
+                try {
+                    this.ensureContext();
+                    const dur = 0.22;
+                    const bufferSize = this.ctx.sampleRate * dur;
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.sin((i / bufferSize) * Math.PI);
+                    }
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(900, this.ctx.currentTime);
+                    filter.frequency.exponentialRampToValueAtTime(2400, this.ctx.currentTime + dur);
+
+                    const gain = this.ctx.createGain();
+                    gain.gain.value = isMuted ? 0 : currentVolume * 0.14;
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    noise.start();
+                } catch (e) {}
+            }
+
+            start(mode = 'synth-lofi') {
+                this.stop();
+                this.ensureContext();
+                this.updateVolume();
+
+                const chordsLofi = [
+                    [261.63, 329.63, 392.00, 493.88], // Cmaj7
+                    [220.00, 261.63, 329.63, 392.00], // Am7
+                    [174.61, 220.00, 261.63, 329.63], // Fmaj7
+                    [196.00, 246.94, 293.66, 349.23]  // G7
+                ];
+
+                const chordsNight = [
+                    [146.83, 220.00, 261.63, 329.63], // Dm9
+                    [110.00, 164.81, 220.00, 261.63], // Am
+                    [130.81, 196.00, 246.94, 293.66], // Cmaj7
+                    [164.81, 246.94, 293.66, 392.00]  // Em7
+                ];
+
+                const bank = mode === 'synth-night' ? chordsNight : chordsLofi;
+                this.step = 0;
+
+                const playChord = () => {
+                    if (!this.ctx || !this.masterGain) return;
+                    const now = this.ctx.currentTime;
+                    const chord = bank[this.step % bank.length];
+                    this.step++;
+
+                    chord.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const noteGain = this.ctx.createGain();
+                        osc.type = mode === 'synth-night' ? 'sawtooth' : 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+
+                        const filter = this.ctx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(mode === 'synth-night' ? 680 : 950, now);
+
+                        noteGain.gain.setValueAtTime(0.001, now);
+                        noteGain.gain.exponentialRampToValueAtTime(0.18, now + 0.35);
+                        noteGain.gain.exponentialRampToValueAtTime(0.001, now + 2.3);
+
+                        osc.connect(filter);
+                        filter.connect(noteGain);
+                        noteGain.connect(this.masterGain);
+
+                        osc.start(now + idx * 0.04);
+                        osc.stop(now + 2.4);
+                    });
+                };
+
+                playChord();
+                this.interval = setInterval(playChord, 2400);
+            }
+
+            stop() {
+                if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+                }
+            }
+
+            updateVolume() {
+                if (this.masterGain && this.ctx) {
+                    this.masterGain.gain.setTargetAtTime(isMuted ? 0 : currentVolume * 0.35, this.ctx.currentTime, 0.05);
+                }
+            }
+        }
+
+        const fmSynth = new CarAudioSynth();
+
+        // ==========================================
+        // ІНІЦІАЛІЗАЦІЯ ТА ГОДИННИК
+        // ==========================================
+        function initApp() {
+            lucide.createIcons();
+            renderRadioStations();
+            updateClocks();
+            calculateFuel();
+            setInterval(updateClocks, 1000);
+        }
+
+        function updateClocks() {
+            const now = new Date();
+            const daysShort = ['НД', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+            const daysFull = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'Пʼятниця', 'Субота'];
+            const monthsShort = ['СІЧ', 'ЛЮТ', 'БЕР', 'КВІ', 'ТРА', 'ЧЕР', 'ЛИП', 'СЕР', 'ВЕР', 'ЖОВ', 'ЛИС', 'ГРУ'];
+            const monthsFull = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
+
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('dock-time').textContent = `${hh}:${mm}`;
+            document.getElementById('dock-date').textContent = `${daysShort[now.getDay()]}, ${now.getDate()} ${monthsShort[now.getMonth()]}`;
+
+            document.getElementById('big-clock').textContent = `${hh}:${mm}:${ss}`;
+            document.getElementById('big-date').textContent = `${daysFull[now.getDay()]}, ${now.getDate()} ${monthsFull[now.getMonth()]} ${now.getFullYear()}`;
+
+            sessionSeconds++;
+            const sMin = String(Math.floor(sessionSeconds / 60)).padStart(2, '0');
+            const sSec = String(sessionSeconds % 60).padStart(2, '0');
+            document.getElementById('session-drive-time').textContent = `${sMin}:${sSec}`;
+        }
+
+        function showToast(text, colorClass = 'text-cyan-400') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'glass-panel px-4 py-2.5 rounded-2xl text-xs font-bold text-white shadow-xl flex items-center gap-2 border border-slate-700/80 transition-all';
+            el.innerHTML = `<span class="w-2 h-2 rounded-full accent-bg"></span><span class="${colorClass}">${text}</span>`;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+        // ==========================================
+        // НАВІГАЦІЯ ТА КЛІМАТ
+        // ==========================================
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-view').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-btn-active'));
+
+            const target = document.getElementById(`tab-${tabName}`);
+            const navBtn = document.getElementById(`nav-${tabName}`);
+            if (target) target.classList.remove('hidden');
+            if (navBtn) navBtn.classList.add('nav-btn-active');
+        }
+
+        function changeClimate(delta) {
+            climateTemp = Math.min(28.0, Math.max(16.0, +(climateTemp + delta).toFixed(1)));
+            document.getElementById('climate-temp').textContent = `${climateTemp.toFixed(1)}°`;
+            showToast(`Клімат-контроль: ${climateTemp.toFixed(1)}°C`);
+        }
+
+        // ==========================================
+        // ЛОГІКА РАДІО ТА ВЕРХНЬОЇ ПЛАШКИ
+        // ==========================================
+        function renderRadioStations() {
+            const grid = document.getElementById('radio-grid');
+            grid.innerHTML = '';
+
+            radioStations.forEach((st, idx) => {
+                const active = idx === currentStationIdx && isPlaying;
+                const isSynth = st.type !== 'stream';
+
+                const card = document.createElement('button');
+                card.onclick = () => selectStation(idx);
+                card.className = `glass-card rounded-2xl p-3.5 text-left flex items-center justify-between gap-3 ${active ? 'accent-border bg-slate-900/90' : ''}`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-950/90 border border-slate-800 flex flex-col items-center justify-center shrink-0">
+                            <span class="font-mono-tech text-sm font-extrabold ${active ? 'accent-text' : 'text-slate-200'}">${st.freq}</span>
+                            <span class="text-[9px] font-bold text-slate-500">FM</span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-sm sm:text-base font-extrabold text-white truncate">${st.name}</span>
+                                ${isSynth ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/20 text-emerald-400 shrink-0">SYNTH</span>' : ''}
+                            </div>
+                            <div class="text-xs text-slate-400 truncate mt-0.5">${st.genre}</div>
+                        </div>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl ${active ? 'accent-bg text-slate-950' : 'bg-slate-800/80 text-slate-300'} flex items-center justify-center shrink-0">
+                        <i data-lucide="${active ? 'pause' : 'play'}" class="w-4 h-4"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        function pauseAllVideo() {
+            const mp4 = document.getElementById('car-mp4-video');
+            if (mp4 && !mp4.paused) mp4.pause();
+            if (currentMediaMode === 'youtube') {
+                const iframe = document.getElementById('yt-iframe');
+                if (iframe && iframe.src.includes('autoplay=1')) {
+                    iframe.src = `https://www.youtube.com/embed/${currentYtId}?rel=0`;
+                }
+            }
+            document.getElementById('media-live-badge').classList.add('hidden');
+        }
+
+        function selectStation(idx) {
+            pauseAllVideo();
+            clearTimeout(streamTimeout);
+
+            currentStationIdx = idx;
+            const st = radioStations[idx];
+
+            fmSynth.playTuningSweep();
+            audioEl.pause();
+            fmSynth.stop();
+
+            // Відкриваємо верхню плашку
+            const topBar = document.getElementById('top-player-bar');
+            topBar.classList.remove('hidden');
+            document.getElementById('bar-freq').textContent = st.freq;
+            document.getElementById('bar-band').textContent = st.type === 'stream' ? 'FM LIVE' : 'FM SYNTH';
+            document.getElementById('bar-title').textContent = st.name;
+            document.getElementById('bar-genre').textContent = st.genre;
+
+            isPlaying = true;
+            updateTopBarPlayState('ПІДКЛЮЧЕННЯ...', 'bg-amber-500/20 text-amber-300');
+            renderRadioStations();
+
+            if (st.type !== 'stream') {
+                fmSynth.start(st.type);
+                updateTopBarPlayState('В ЕФІРІ (SYNTH)', 'bg-emerald-500/20 text-emerald-400');
+                showToast(`Ефір: ${st.name}`);
+                return;
+            }
+
+            audioEl.src = st.url;
+            audioEl.volume = isMuted ? 0 : currentVolume;
+
+            // Якщо зовнішній потік недоступний протягом 5.5 сек — перемикаємо на вбудований синтез
+            streamTimeout = setTimeout(() => {
+                if (isPlaying && audioEl.paused) {
+                    fmSynth.start('synth-lofi');
+                    updateTopBarPlayState('РЕЗЕРВНИЙ FM', 'bg-cyan-500/20 text-cyan-300');
+                    showToast(`${st.name}: увімкнено резервний FM-канал`);
+                }
+            }, 5500);
+
+            audioEl.play().then(() => {
+                clearTimeout(streamTimeout);
+                updateTopBarPlayState('В ЕФІРІ', 'bg-emerald-500/20 text-emerald-400');
+                showToast(`Радіо: ${st.name}`);
+            }).catch(() => {
+                clearTimeout(streamTimeout);
+                fmSynth.start('synth-lofi');
+                updateTopBarPlayState('РЕЗЕРВНИЙ FM', 'bg-cyan-500/20 text-cyan-300');
+                showToast(`${st.name}: потік заблоковано, увімкнено FM-синтезатор`);
+            });
+        }
+
+        function updateTopBarPlayState(label, pillClasses) {
+            const pill = document.getElementById('bar-status-pill');
+            pill.textContent = label;
+            pill.className = `px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${pillClasses}`;
+
+            const eq = document.getElementById('bar-eq');
+            const icon = document.getElementById('bar-play-icon');
+            if (isPlaying) {
+                eq.classList.add('eq-playing');
+                icon.setAttribute('data-lucide', 'pause');
+            } else {
+                eq.classList.remove('eq-playing');
+                icon.setAttribute('data-lucide', 'play');
+            }
+            lucide.createIcons();
+        }
+
+        function togglePlayPause() {
+            if (currentStationIdx === -1) {
+                selectStation(0);
+                return;
+            }
+            const st = radioStations[currentStationIdx];
+            if (isPlaying) {
+                isPlaying = false;
+                clearTimeout(streamTimeout);
+                audioEl.pause();
+                fmSynth.stop();
+                updateTopBarPlayState('ПАУЗА', 'bg-slate-700 text-slate-300');
+            } else {
+                selectStation(currentStationIdx);
+            }
+            renderRadioStations();
+        }
+
+        function nextStation() {
+            const next = (currentStationIdx + 1) % radioStations.length;
+            selectStation(next);
+        }
+
+        function prevStation() {
+            const prev = (currentStationIdx - 1 + radioStations.length) % radioStations.length;
+            selectStation(prev);
+        }
+
+        function setVolume(val) {
+            currentVolume = Number(val) / 100;
+            isMuted = currentVolume === 0;
+            audioEl.volume = isMuted ? 0 : currentVolume;
+            fmSynth.updateVolume();
+            document.getElementById('bar-vol-text').textContent = `${val}%`;
+            updateVolumeIcon();
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            audioEl.volume = isMuted ? 0 : currentVolume;
+            fmSynth.updateVolume();
+            updateVolumeIcon();
+        }
+
+        function updateVolumeIcon() {
+            const icon = document.getElementById('bar-vol-icon');
+            icon.setAttribute('data-lucide', isMuted || currentVolume === 0 ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+        }
+
+        function closeTopPlayer() {
+            isPlaying = false;
+            clearTimeout(streamTimeout);
+            audioEl.pause();
+            fmSynth.stop();
+            document.getElementById('top-player-bar').classList.add('hidden');
+            renderRadioStations();
+        }
+
+        function addCustomRadio() {
+            const name = document.getElementById('custom-radio-name').value.trim();
+            const url = document.getElementById('custom-radio-url').value.trim();
+            if (!name || !url) {
+                showToast('Введіть назву та HTTPS-посилання потоку', 'text-amber-400');
+                return;
+            }
+            const freq = (88 + Math.random() * 19).toFixed(1);
+            radioStations.unshift({
+                id: 'custom-' + Date.now(),
+                freq,
+                name,
+                genre: 'Власний онлайн-потік',
+                url,
+                type: 'stream'
+            });
+            document.getElementById('custom-radio-name').value = '';
+            document.getElementById('custom-radio-url').value = '';
+            renderRadioStations();
+            selectStation(0);
+        }
+
+        // ==========================================
+        // ЛОГІКА МЕДІА / YOUTUBE / MP4
+        // ==========================================
+        function pauseRadioForMedia() {
+            if (isPlaying) {
+                isPlaying = false;
+                clearTimeout(streamTimeout);
+                audioEl.pause();
+                fmSynth.stop();
+                updateTopBarPlayState('ПАУЗА (ВІДЕО)', 'bg-slate-700 text-slate-300');
+                renderRadioStations();
+            }
+            document.getElementById('media-live-badge').classList.remove('hidden');
+        }
+
+        function setMediaMode(mode) {
+            currentMediaMode = mode;
+            const ytBox = document.getElementById('youtube-container');
+            const mp4Box = document.getElementById('mp4-container');
+            const btnYt = document.getElementById('btn-mode-youtube');
+            const btnMp4 = document.getElementById('btn-mode-mp4');
+            const badge = document.getElementById('media-mode-badge');
+
+            if (mode === 'youtube') {
+                ytBox.classList.remove('hidden');
+                mp4Box.classList.add('hidden');
+                document.getElementById('car-mp4-video').pause();
+                btnYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-red-600 text-white transition';
+                btnMp4.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
+                badge.textContent = 'YouTube Standard IFrame';
+            } else {
+                ytBox.classList.add('hidden');
+                mp4Box.classList.remove('hidden');
+                btnMp4.className = 'px-2.5 py-1 rounded-xl font-bold bg-emerald-600 text-white transition';
+                btnYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
+                badge.textContent = 'HTML5 MP4 Direct Stream';
+                pauseRadioForMedia();
+                const vid = document.getElementById('car-mp4-video');
+                vid.play().catch(() => {});
+            }
+        }
+
+        function extractYoutubeId(input) {
+            const clean = String(input || '').trim();
+            if (/^[a-zA-Z0-9_-]{11}$/.test(clean)) return clean;
+            try {
+                const url = new URL(clean.includes('://') ? clean : `https://${clean}`);
+                const host = url.hostname.replace(/^www\./, '').replace(/^m\./, '');
+                if (host === 'youtu.be') {
+                    const id = url.pathname.split('/').filter(Boolean)[0];
+                    return /^[a-zA-Z0-9_-]{11}$/.test(id || '') ? id : null;
+                }
+                if (host.endsWith('youtube.com') || host === 'youtube-nocookie.com') {
+                    const id = url.searchParams.get('v') || url.pathname.match(/\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/)?.[1];
+                    return /^[a-zA-Z0-9_-]{11}$/.test(id || '') ? id : null;
+                }
+            } catch (e) {}
+            const match = clean.match(/(?:youtube\.com\/(?:watch\?.*?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            return match ? match[1] : null;
+        }
+
+        function playYoutubePreset(videoId, title) {
+            if (!/^[a-zA-Z0-9_-]{11}$/.test(String(videoId))) {
+                showToast('Некоректний ID відео YouTube', 'text-rose-400');
+                return;
+            }
+            pauseRadioForMedia();
+            setMediaMode('youtube');
+            currentYtId = videoId;
+            const player = document.getElementById('yt-iframe');
+            const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+            // На HTTP/HTTPS додаємо origin сторінки; браузер також передає Referer
+            // завдяки referrerpolicy на iframe. Для file:// потрібен локальний HTTP-сервер.
+            if (location.protocol === 'http:' || location.protocol === 'https:') {
+                params.set('origin', location.origin);
+            }
+            player.src = `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+            player.referrerPolicy = 'strict-origin-when-cross-origin';
+            document.getElementById('media-current-title').textContent = `Зараз: ${title}`;
+            document.getElementById('yt-direct-link').href = `https://www.youtube.com/watch?v=${videoId}`;
+            showToast(`YouTube: ${title}`);
+        }
+
+        function playMp4Preset(mp4Url, title) {
+            pauseRadioForMedia();
+            setMediaMode('mp4');
+            const vid = document.getElementById('car-mp4-video');
+            vid.src = mp4Url;
+            vid.play().catch(() => {});
+            document.getElementById('media-current-title').textContent = `Зараз: ${title}`;
+            showToast(`MP4 Відео: ${title}`);
+        }
+
+        function loadCustomYoutube() {
+            const val = document.getElementById('yt-url-input').value;
+            const id = extractYoutubeId(val);
+            if (!id) {
+                showToast('Невірне посилання або ID відео YouTube', 'text-rose-400');
+                return;
+            }
+            playYoutubePreset(id, `Користувацьке відео (${id})`);
+        }
+
+        function searchYoutube() {
+            const q = document.getElementById('yt-search-input').value.trim();
+            if (!q) return;
+            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, '_blank', 'noopener,noreferrer');
+            showToast(`Пошук YouTube: «${q}»`);
+        }
+
+        // ==========================================
+        // КАЛЬКУЛЯТОР ТА ПАЛЬНЕ
+        // ==========================================
+        let calcExpr = '';
+
+        function calcInput(ch) {
+            if (calcExpr === 'Помилка') calcExpr = '';
+            calcExpr += ch;
+            document.getElementById('calc-display').textContent = calcExpr;
+        }
+
+        function calcClear() {
+            calcExpr = '';
+            document.getElementById('calc-display').textContent = '0';
+            document.getElementById('calc-history').textContent = '0';
+        }
+
+        function calcBackspace() {
+            calcExpr = calcExpr.slice(0, -1);
+            document.getElementById('calc-display').textContent = calcExpr || '0';
+        }
+
+        function calcEqual() {
+            if (!calcExpr) return;
+            try {
+                const sanitized = calcExpr.replace(/[^0-9+\-*/.%()]/g, '');
+                const result = Function(`"use strict"; return (${sanitized})`)();
+                const formatted = Number.isFinite(result) ? Number(result.toFixed(4)).toString() : 'Помилка';
+                document.getElementById('calc-history').textContent = calcExpr + ' =';
+                calcExpr = formatted === 'Помилка' ? '' : formatted;
+                document.getElementById('calc-display').textContent = formatted;
+            } catch (e) {
+                document.getElementById('calc-display').textContent = 'Помилка';
+                calcExpr = '';
+            }
+        }
+
+        function calculateFuel() {
+            const dist = parseFloat(document.getElementById('fuel-dist').value) || 0;
+            const cons = parseFloat(document.getElementById('fuel-cons').value) || 0;
+            const price = parseFloat(document.getElementById('fuel-price').value) || 0;
+
+            const liters = (dist * cons) / 100;
+            const cost = liters * price;
+
+            document.getElementById('fuel-res-liters').textContent = `${liters.toFixed(1)} л`;
+            document.getElementById('fuel-res-cost').textContent = `${Math.round(cost).toLocaleString('uk-UA')} грн`;
+        }
+
+        // ==========================================
+        // СЕКУНДОМІР ТА ТАЙМЕР
+        // ==========================================
+        let swInterval = null;
+        let swElapsed = 0;
+        let swLastTick = 0;
+        let swLapCounter = 0;
+
+        function formatSw(ms) {
+            const mins = String(Math.floor(ms / 60000)).padStart(2, '0');
+            const secs = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+            const hundredths = String(Math.floor((ms % 1000) / 10)).padStart(2, '0');
+            return `${mins}:${secs}.${hundredths}`;
+        }
+
+        function swToggle() {
+            const btn = document.getElementById('sw-start-btn');
+            if (swInterval) {
+                clearInterval(swInterval);
+                swInterval = null;
+                btn.textContent = 'Продовжити';
+                btn.className = 'rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3 text-sm transition';
+            } else {
+                swLastTick = Date.now();
+                swInterval = setInterval(() => {
+                    const now = Date.now();
+                    swElapsed += now - swLastTick;
+                    swLastTick = now;
+                    document.getElementById('sw-display').textContent = formatSw(swElapsed);
+                }, 30);
+                btn.textContent = 'Пауза';
+                btn.className = 'rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 text-sm transition';
+            }
+        }
+
+        function swLap() {
+            if (swElapsed === 0) return;
+            swLapCounter++;
+            const lapsBox = document.getElementById('sw-laps');
+            const item = document.createElement('div');
+            item.className = 'flex justify-between bg-slate-950/70 px-3 py-1.5 rounded-xl border border-slate-800/80';
+            item.innerHTML = `<span>Коло #${swLapCounter}</span><span class="accent-text font-bold">${formatSw(swElapsed)}</span>`;
+            lapsBox.prepend(item);
+        }
+
+        function swReset() {
+            clearInterval(swInterval);
+            swInterval = null;
+            swElapsed = 0;
+            swLapCounter = 0;
+            document.getElementById('sw-display').textContent = '00:00.00';
+            document.getElementById('sw-laps').innerHTML = '';
+            const btn = document.getElementById('sw-start-btn');
+            btn.textContent = 'Старт';
+            btn.className = 'rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3 text-sm transition';
+        }
+
+        let timerTotalSec = 900;
+        let timerInterval = null;
+
+        function renderTimer() {
+            const m = String(Math.floor(timerTotalSec / 60)).padStart(2, '0');
+            const s = String(timerTotalSec % 60).padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${m}:${s}`;
+        }
+
+        function setTimerMinutes(mins) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerTotalSec = mins * 60;
+            renderTimer();
+            document.getElementById('timer-start-btn').textContent = 'Запустити таймер';
+        }
+
+        function timerToggle() {
+            const btn = document.getElementById('timer-start-btn');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.textContent = 'Продовжити';
+            } else {
+                btn.textContent = 'Пауза';
+                timerInterval = setInterval(() => {
+                    if (timerTotalSec > 0) {
+                        timerTotalSec--;
+                        renderTimer();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        btn.textContent = 'Запустити таймер';
+                        fmSynth.playTuningSweep();
+                        showToast('Час паркування вийшов!', 'text-amber-400');
+                    }
+                }, 1000);
+            }
+        }
+
+        function timerReset() {
+            setTimerMinutes(15);
+        }
+
+        // ==========================================
+        // РЕЖИМИ РУХУ АВТО ТА ОБОЇ / НАЛАШТУВАННЯ
+        // ==========================================
+        function setDriveMode(mode) {
+            const modes = ['ECO', 'COMFORT', 'SPORT'];
+            modes.forEach(m => {
+                const btn = document.getElementById(`mode-${m.toLowerCase()}`);
+                if (!btn) return;
+                btn.className = m === mode
+                    ? 'px-3.5 py-1.5 rounded-xl text-xs font-extrabold accent-bg text-slate-950 transition'
+                    : 'px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition';
+            });
+            document.getElementById('car-mode-label').textContent = mode;
+
+            if (mode === 'ECO') {
+                setAccentColor('#10b981', 'rgba(16,185,129,0.35)', 'rgba(16,185,129,0.14)', false);
+            } else if (mode === 'SPORT') {
+                setAccentColor('#f43f5e', 'rgba(244,63,94,0.35)', 'rgba(244,63,94,0.14)', false);
+            } else {
+                setAccentColor('#06b6d4', 'rgba(6,182,212,0.35)', 'rgba(6,182,212,0.14)', false);
+            }
+            showToast(`Режим руху: ${mode}`);
+        }
+
+        function setWallpaperPreset(wpClass, label) {
+            const bg = document.getElementById('wallpaper-bg');
+            bg.style.backgroundImage = '';
+            bg.className = `${wpClass} w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500`;
+            showToast(`Обої: ${label}`);
+        }
+
+        function uploadCustomWallpaper(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const bg = document.getElementById('wallpaper-bg');
+                bg.style.backgroundImage = `linear-gradient(rgba(5,8,15,0.45), rgba(5,8,15,0.6)), url('${e.target.result}')`;
+                showToast('Власні обої встановлено');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyCustomWallpaperUrl() {
+            const url = document.getElementById('custom-wp-url').value.trim();
+            if (!url) return;
+            const bg = document.getElementById('wallpaper-bg');
+            bg.style.backgroundImage = `linear-gradient(rgba(5,8,15,0.45), rgba(5,8,15,0.6)), url('${url}')`;
+            showToast('Обої за посиланням застосовано');
+        }
+
+        function setAccentColor(hex, glow, soft, notify = true) {
+            document.documentElement.style.setProperty('--accent', hex);
+            document.documentElement.style.setProperty('--accent-glow', glow);
+            document.documentElement.style.setProperty('--accent-soft', soft);
+            if (notify) showToast('Колір підсвітки оновлено');
+        }
+
+        function setScreenBrightness(val) {
+            document.documentElement.style.setProperty('--brightness', val / 100);
+            document.getElementById('brightness-label').textContent = `${val}%`;
+        }
+
+        let isLargeScale = false;
+        function toggleUiScale() {
+            isLargeScale = !isLargeScale;
+            document.body.classList.toggle('scale-large', isLargeScale);
+            document.getElementById('scale-toggle-btn').textContent = isLargeScale ? 'Збільшений' : 'Стандарт';
+            showToast(`Масштаб шрифту: ${isLargeScale ? 'Збільшений' : 'Стандартний'}`);
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
