@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CarOS v4.1 — Бортовий комп'ютер автомобіля</title>
+    <title>CarOS v4.0 — Бортовий комп'ютер автомобіля</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -13,11 +13,10 @@
             --accent-glow: rgba(6, 182, 212, 0.35);
             --accent-soft: rgba(6, 182, 212, 0.14);
             --brightness: 1;
-            
-            /* Нові змінні для прозорості інтерфейсу */
-            --glass-bg: rgba(15, 23, 42, 0.72);
-            --glass-card-bg: rgba(15, 23, 42, 0.62);
-            --glass-blur: 18px;
+            /* Змінні для прозорості */
+            --glass-op: 0.72;
+            --card-op: 0.62;
+            --card-hover-op: 0.72;
         }
 
         * {
@@ -77,24 +76,23 @@
             background: #000000;
         }
 
-        /* Скломорфізм із динамічною прозорістю */
+        /* Скломорфізм із використанням CSS змінних для прозорості */
         .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
+            background: rgba(15, 23, 42, var(--glass-op));
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border: 1px solid rgba(148, 163, 184, 0.14);
-            transition: background 0.3s ease, backdrop-filter 0.3s ease;
         }
 
         .glass-card {
-            background: var(--glass-card-bg);
+            background: rgba(15, 23, 42, var(--card-op));
             border: 1px solid rgba(148, 163, 184, 0.12);
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glass-card:hover {
             border-color: rgba(148, 163, 184, 0.28);
-            background: var(--glass-bg);
+            background: rgba(30, 41, 59, var(--card-hover-op));
         }
 
         .accent-text {
@@ -157,7 +155,7 @@
             border-radius: 9999px;
         }
 
-        /* Повзунок */
+        /* Повзунок гучності та налаштувань */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -184,19 +182,19 @@
 </head>
 <body>
     <div id="app-brightness-layer">
-        <!-- Додано z-0 для коректного позиціонування відео на фоні -->
-        <div id="wallpaper-bg" class="wp-space w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500 z-0">
+        <!-- Головний контейнер з фоном -->
+        <div id="wallpaper-bg" class="wp-space w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500">
             
-            <!-- ЖИВІ ОБОЇ ВІДЕО -->
-            <video id="live-wallpaper-video" class="absolute inset-0 w-full h-full object-cover z-[-1] hidden" autoplay loop muted playsinline></video>
+            <!-- Живі обої (Відео) -->
+            <video id="bg-video" autoplay loop muted playsinline class="hidden absolute top-0 left-0 w-full h-full object-cover z-0"></video>
 
-            <!-- Спливаючі повідомлення (замість alert) -->
+            <!-- Спливаючі повідомлення -->
             <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
             <!-- ========================================== -->
             <!-- ЛІВА НАВІГАЦІЙНА ПАНЕЛЬ (DOCK BAR)         -->
             <!-- ========================================== -->
-            <aside class="glass-panel rounded-3xl p-2.5 sm:p-3 flex md:flex-col justify-between items-center md:w-28 lg:w-32 shrink-0 gap-2 z-20">
+            <aside class="relative z-20 glass-panel rounded-3xl p-2.5 sm:p-3 flex md:flex-col justify-between items-center md:w-28 lg:w-32 shrink-0 gap-2">
                 
                 <!-- Годинник та статус мережі -->
                 <div class="flex md:flex-col items-center gap-2 md:gap-1 shrink-0">
@@ -262,7 +260,7 @@
             <!-- ========================================== -->
             <!-- ОСНОВНА РОБОЧА ОБЛАСТЬ                     -->
             <!-- ========================================== -->
-            <main class="flex-1 flex flex-col gap-2.5 sm:gap-3 overflow-hidden min-w-0">
+            <main class="relative z-10 flex-1 flex flex-col gap-2.5 sm:gap-3 overflow-hidden min-w-0">
 
                 <!-- ВЕРХНЯ ПЛАШКА АКТИВНОГО ПЛЕЄРА -->
                 <header id="top-player-bar" class="hidden glass-panel accent-border rounded-3xl px-3.5 py-2.5 sm:px-5 sm:py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 z-10 transition-all">
@@ -391,22 +389,33 @@
                                 <!-- Панель вибору режиму відеоплеєра -->
                                 <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-slate-950 border-b border-slate-800 text-xs shrink-0">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="text-slate-400 font-semibold mr-1">Режим плеєра:</span>
+                                        <span class="text-slate-400 font-semibold mr-1">Режим:</span>
+                                        <button onclick="setMediaMode('full-yt')" id="btn-mode-full-yt" class="px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition">
+                                            Повний YouTube
+                                        </button>
                                         <button onclick="setMediaMode('youtube')" id="btn-mode-youtube" class="px-2.5 py-1 rounded-xl font-bold bg-red-600 text-white transition">
                                             YouTube Embed
                                         </button>
                                         <button onclick="setMediaMode('mp4')" id="btn-mode-mp4" class="px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition">
-                                            Авто-відео MP4 (Працює всюди)
+                                            Авто-відео (MP4)
                                         </button>
                                     </div>
                                     <span id="media-mode-badge" class="text-[11px] font-mono-tech text-slate-400">YouTube Standard IFrame</span>
                                 </div>
 
-                                <!-- Контейнер YouTube -->
+                                <!-- Контейнер Повного YouTube -->
+                                <div id="full-yt-container" class="hidden relative flex-1 w-full h-full bg-black flex flex-col">
+                                    <iframe id="full-yt-iframe" class="w-full flex-1 border-0" src="https://www.youtube.com/?theme=dark" title="YouTube Browser" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                    <div class="bg-blue-500/10 border-t border-blue-500/25 px-3 py-1.5 text-[11px] text-blue-200/90 flex items-center justify-between gap-2">
+                                        <span>Це повноцінний інтерфейс YouTube. Якщо він блокується (X-Frame-Options), використовуйте "YouTube Embed" або відкривайте у спеціальному веб-переглядачі.</span>
+                                    </div>
+                                </div>
+
+                                <!-- Контейнер YouTube Embed -->
                                 <div id="youtube-container" class="relative flex-1 w-full h-full bg-black flex flex-col">
                                     <iframe id="yt-iframe" class="w-full flex-1 border-0" src="https://www.youtube.com/embed/jfKfPfyJRdk?rel=0&amp;playsinline=1" title="YouTube Video Player" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                                     <div class="bg-amber-500/10 border-t border-amber-500/25 px-3 py-1.5 text-[11px] text-amber-200/90 flex items-center justify-between gap-2">
-                                        <span>Для YouTube потрібне відкриття сторінки через HTTP/HTTPS (не напряму як file://): тоді браузер передає Referer і плеєр може завантажитися.</span>
+                                        <span>Для YouTube потрібне відкриття сторінки через HTTP/HTTPS (не напряму як file://).</span>
                                         <button onclick="setMediaMode('mp4')" class="px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold shrink-0">
                                             Увімкнути MP4
                                         </button>
@@ -430,33 +439,73 @@
                             </div>
                         </div>
 
-                        <!-- Права частина: Перероблена під YouTube Тренди -->
-                        <div class="w-full lg:w-80 flex flex-col gap-2.5 overflow-y-auto shrink-0 pb-2">
-                            <!-- Рекомендації YouTube -->
-                            <div class="flex flex-col gap-2">
-                                <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between gap-1.5 sticky top-0 bg-slate-900/95 p-2 rounded-xl z-10 backdrop-blur-md border border-slate-800">
-                                    <span class="flex items-center gap-1.5"><i data-lucide="youtube" class="w-4 h-4 text-red-500"></i> YouTube Тренди</span>
-                                    <button onclick="renderYtRecommendations()" title="Оновити" class="hover:text-white transition bg-slate-800 p-1.5 rounded-lg"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i></button>
-                                </div>
-                                
-                                <!-- Сюди JS вставить картки з прев'юшками -->
-                                <div id="yt-recs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
-                                </div>
+                        <!-- Права частина: Готові пресети -->
+                        <div class="w-full lg:w-80 flex flex-col gap-2.5 overflow-y-auto shrink-0">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                                Швидкий запуск у дорогу
                             </div>
 
-                            <!-- Залишено MP4 Тести -->
-                            <div class="pt-2 mt-2 border-t border-slate-800/80 text-[11px] font-bold uppercase text-emerald-400">
-                                Резервні MP4 відео:
+                            <div class="space-y-2">
+                                <button onclick="playYoutubePreset('jfKfPfyJRdk', 'Lofi Hip Hop Radio — Beats to Relax/Drive')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="headphones" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-cyan-400">YouTube • Спокійна дорога</div>
+                                        <div class="text-sm font-bold text-white truncate">Lofi Hip Hop Radio 24/7</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="playYoutubePreset('4xDzrJKXOOY', 'Synthwave Radio — Beats to Chill/Drive')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="moon" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-purple-400">YouTube • Нічна траса</div>
+                                        <div class="text-sm font-bold text-white truncate">Synthwave Night Drive</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="playYoutubePreset('36YnV9STBqc', 'The Good Life Radio — Deep House Mix')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="disc" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-emerald-400">YouTube • Драйв мікс</div>
+                                        <div class="text-sm font-bold text-white truncate">Deep House Car Mix</div>
+                                    </div>
+                                </button>
+
+                                <div class="pt-1 border-t border-slate-800/80 text-[11px] font-bold uppercase text-emerald-400">
+                                    Гарантовані MP4 відео-потоки:
+                                </div>
+
+                                <button onclick="playMp4Preset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', 'Авто-візуалізація: Вогняний драйв (HD MP4)')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3 border-emerald-500/20">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="film" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-emerald-400">MP4 • Працює без обмежень</div>
+                                        <div class="text-sm font-bold text-white truncate">Тест-драйв візуалізація #1</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="playMp4Preset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4', 'Огляд Volkswagen GTI — Автомобільний канал (MP4)')" class="w-full text-left glass-card rounded-2xl p-3 flex items-center gap-3 border-emerald-500/20">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="gauge" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold uppercase text-amber-400">MP4 • Авто-огляд</div>
+                                        <div class="text-sm font-bold text-white truncate">Volkswagen GTI Road Test</div>
+                                    </div>
+                                </button>
                             </div>
-                            <button onclick="playMp4Preset('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', 'Візуалізація: Вогняний драйв')" class="w-full text-left glass-card rounded-xl p-2.5 flex items-center gap-3 border-emerald-500/20">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                                    <i data-lucide="film" class="w-4 h-4"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="text-[10px] font-bold uppercase text-emerald-400">Авто-візуалізація</div>
-                                    <div class="text-sm font-bold text-white truncate">Тест-драйв MP4 #1</div>
-                                </div>
-                            </button>
+
+                            <div class="mt-auto bg-slate-950/70 border border-slate-800 rounded-2xl p-2.5 text-[11px] text-slate-400 flex items-center gap-2">
+                                <i data-lucide="volume-x" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+                                <span>Радіо автоматично ставиться на паузу при запуску відео.</span>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -716,9 +765,9 @@
                     <div>
                         <h2 class="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
                             <i data-lucide="palette" class="w-5 h-5 accent-text"></i>
-                            Обої та персоналізація CarOS v4.1
+                            Обої та персоналізація CarOS v4.0
                         </h2>
-                        <p class="text-xs text-slate-400">Налаштуйте фон екрана, прозорість, колір підсвітки кнопок, яскравість та розмір шрифту</p>
+                        <p class="text-xs text-slate-400">Налаштуйте фон екрана, колір підсвітки кнопок, яскравість, прозорість та масштаб шрифту</p>
                     </div>
 
                     <!-- Вбудовані 8 обоїв -->
@@ -760,41 +809,45 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- Власні обої або ЖИВІ ОБОЇ (MP4) -->
-                        <div class="glass-card rounded-2xl p-3.5 space-y-2.5 flex-1">
-                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Власне фото або ЖИВІ ОБОЇ (MP4)</div>
-                            <div class="flex flex-col gap-2.5">
-                                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition w-full">
+                    <!-- Власні обої (Файл або URL) та Живі обої (Відео) -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                        <div class="glass-card rounded-2xl p-3.5 space-y-2.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Встановити власне фото</div>
+                            <div class="flex flex-col sm:flex-row gap-2.5">
+                                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition shrink-0">
                                     <i data-lucide="image-plus" class="w-4 h-4 accent-text"></i>
-                                    <span>Завантажити з пристрою (Фото/Відео)</span>
-                                    <input type="file" accept="image/*,video/mp4" onchange="uploadCustomMedia(event)" class="hidden">
+                                    <span>Завантажити</span>
+                                    <input type="file" accept="image/*" onchange="uploadCustomWallpaper(event)" class="hidden">
                                 </label>
-                                <div class="flex gap-2">
-                                    <input id="custom-wp-url" type="text" placeholder="URL фото або .mp4..." class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 flex-1 focus:outline-none focus:border-cyan-500">
-                                    <button onclick="applyCustomMediaUrl()" class="accent-bg text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl hover:brightness-110 transition shrink-0">
-                                        Застосувати
-                                    </button>
-                                </div>
+                                <input id="custom-wp-url" type="url" placeholder="Або вставте URL фото..." class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 flex-1 focus:outline-none focus:border-cyan-500">
+                                <button onclick="applyCustomWallpaperUrl()" class="accent-bg text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl hover:brightness-110 transition shrink-0">
+                                    Застосувати
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Прозорість інтерфейсу -->
-                        <div class="glass-card rounded-2xl p-3.5 flex flex-col justify-center gap-2.5 flex-1">
-                            <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-1">
-                                <span class="flex items-center gap-1.5"><i data-lucide="droplet" class="w-4 h-4 accent-text"></i> Прозорість вікон</span>
-                                <span id="opacity-label" class="font-mono-tech accent-text">72%</span>
+                        <!-- Живі обої MP4 -->
+                        <div class="glass-card rounded-2xl p-3.5 space-y-2.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Живі обої (Відео MP4)</div>
+                            <div class="flex flex-col sm:flex-row gap-2.5">
+                                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition shrink-0">
+                                    <i data-lucide="video" class="w-4 h-4 text-emerald-400"></i>
+                                    <span>Завантажити</span>
+                                    <input type="file" accept="video/mp4,video/*" onchange="uploadLiveWallpaper(event)" class="hidden">
+                                </label>
+                                <input id="live-wp-url" type="url" placeholder="Або вставте URL відео..." class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 flex-1 focus:outline-none focus:border-cyan-500">
+                                <button onclick="applyLiveWallpaperUrl()" class="bg-emerald-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl hover:brightness-110 transition shrink-0">
+                                    Увімкнути
+                                </button>
                             </div>
-                            <input type="range" min="10" max="100" value="72" oninput="setUiOpacity(this.value)" class="w-full">
-                            <div class="text-[10px] text-slate-400">Зменшіть прозорість, щоб краще бачити встановлені обої</div>
                         </div>
                     </div>
 
-                    <!-- Колір підсвітки, яскравість, масштаб -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-auto">
+                    <!-- Колір підсвітки, яскравість, прозорість, масштаб -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-auto">
                         <!-- Акцентний колір -->
                         <div class="glass-card rounded-2xl p-3.5">
-                            <div class="text-xs font-bold text-slate-300 mb-2.5">Колір підсвітки інтерфейсу</div>
+                            <div class="text-xs font-bold text-slate-300 mb-2.5">Колір підсвітки</div>
                             <div class="flex items-center gap-2.5">
                                 <button onclick="setAccentColor('#06b6d4', 'rgba(6,182,212,0.35)', 'rgba(6,182,212,0.14)')" class="w-8 h-8 rounded-full bg-cyan-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
                                 <button onclick="setAccentColor('#10b981', 'rgba(16,185,129,0.35)', 'rgba(16,185,129,0.14)')" class="w-8 h-8 rounded-full bg-emerald-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
@@ -802,6 +855,15 @@
                                 <button onclick="setAccentColor('#a855f7', 'rgba(168,85,247,0.35)', 'rgba(168,85,247,0.14)')" class="w-8 h-8 rounded-full bg-purple-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
                                 <button onclick="setAccentColor('#f43f5e', 'rgba(244,63,94,0.35)', 'rgba(244,63,94,0.14)')" class="w-8 h-8 rounded-full bg-rose-500 ring-2 ring-white/30 hover:scale-110 transition"></button>
                             </div>
+                        </div>
+
+                        <!-- Прозорість інтерфейсу -->
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-2.5">
+                                <span>Прозорість UI</span>
+                                <span id="opacity-label" class="font-mono-tech accent-text">72%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="72" oninput="setInterfaceOpacity(this.value)" class="w-full">
                         </div>
 
                         <!-- Яскравість екрана -->
@@ -814,14 +876,16 @@
                         </div>
 
                         <!-- Масштаб тексту -->
-                        <div class="glass-card rounded-2xl p-3.5 flex items-center justify-between">
-                            <div>
-                                <div class="text-xs font-bold text-slate-300">Збільшений шрифт</div>
-                                <div class="text-[11px] text-slate-400">Зручніше під час руху</div>
+                        <div class="glass-card rounded-2xl p-3.5 flex flex-col justify-center">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs font-bold text-slate-300">Збільшений шрифт</div>
+                                    <div class="text-[10px] text-slate-400">Зручніше під час руху</div>
+                                </div>
+                                <button onclick="toggleUiScale()" id="scale-toggle-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-extrabold text-white transition">
+                                    Стандарт
+                                </button>
                             </div>
-                            <button onclick="toggleUiScale()" id="scale-toggle-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-extrabold text-white transition">
-                                Стандарт
-                            </button>
                         </div>
                     </div>
                 </section>
@@ -831,7 +895,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- JAVASCRIPT ЛОГІКА CAROS v4.1               -->
+    <!-- JAVASCRIPT ЛОГІКА CAROS v4.0               -->
     <!-- ========================================== -->
     <script>
         // 1. БАЗА РАДІОСТАНЦІЙ
@@ -847,18 +911,7 @@
             { id: 'fm-night', freq: '91.6', name: 'FM Night Drive (Автономне)', genre: 'Вбудований синтезатор • Ambient', url: '', type: 'synth-night' }
         ];
 
-        // 2. БАЗА ДЛЯ НОВОГО ЮТУБУ (Рекомендації)
-        const ytRecs = [
-            { id: 'jfKfPfyJRdk', title: 'Lofi Hip Hop - Chill/Drive', channel: 'Lofi Girl' },
-            { id: '4xDzrJKXOOY', title: 'Synthwave Night Drive', channel: 'RetroMix' },
-            { id: 'K4DyBUG242c', title: 'Cartoon - On & On (NCS Release)', channel: 'NoCopyrightSounds' },
-            { id: 'Zt2h-XjZk_Y', title: 'Euro Truck Simulator 2 - Trailer', channel: 'SCS Software' }, 
-            { id: 'nZ5B_gK5hF0', title: 'BeamNG.drive - Physics Engine Showcase', channel: 'BeamNG' }, 
-            { id: 'v4E5d06kK30', title: 'Brawl Stars: Animation', channel: 'Brawl Stars' }, 
-            { id: 'dQw4w9WgXcQ', title: 'Найкраща пісня для дороги', channel: 'Rick Astley' },
-            { id: '36YnV9STBqc', title: 'Deep House Car Mix', channel: 'The Good Life' }
-        ];
-
+        // Стан плеєра та системи
         const audioEl = new Audio();
         audioEl.preload = 'none';
 
@@ -873,7 +926,7 @@
         let streamTimeout = null;
 
         // ==========================================
-        // WEB AUDIO API
+        // WEB AUDIO API: FM ТЮНЕР ТА АВТОНОМНИЙ СИНТЕЗ
         // ==========================================
         class CarAudioSynth {
             constructor() {
@@ -891,7 +944,9 @@
                     this.masterGain.gain.value = isMuted ? 0 : currentVolume * 0.35;
                     this.masterGain.connect(this.ctx.destination);
                 }
-                if (this.ctx.state === 'suspended') this.ctx.resume();
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
             }
 
             playTuningSweep() {
@@ -928,12 +983,17 @@
                 this.updateVolume();
 
                 const chordsLofi = [
-                    [261.63, 329.63, 392.00, 493.88], [220.00, 261.63, 329.63, 392.00],
-                    [174.61, 220.00, 261.63, 329.63], [196.00, 246.94, 293.66, 349.23]
+                    [261.63, 329.63, 392.00, 493.88], // Cmaj7
+                    [220.00, 261.63, 329.63, 392.00], // Am7
+                    [174.61, 220.00, 261.63, 329.63], // Fmaj7
+                    [196.00, 246.94, 293.66, 349.23]  // G7
                 ];
+
                 const chordsNight = [
-                    [146.83, 220.00, 261.63, 329.63], [110.00, 164.81, 220.00, 261.63],
-                    [130.81, 196.00, 246.94, 293.66], [164.81, 246.94, 293.66, 392.00]
+                    [146.83, 220.00, 261.63, 329.63], // Dm9
+                    [110.00, 164.81, 220.00, 261.63], // Am
+                    [130.81, 196.00, 246.94, 293.66], // Cmaj7
+                    [164.81, 246.94, 293.66, 392.00]  // Em7
                 ];
 
                 const bank = mode === 'synth-night' ? chordsNight : chordsLofi;
@@ -994,7 +1054,6 @@
         function initApp() {
             lucide.createIcons();
             renderRadioStations();
-            renderYtRecommendations();
             updateClocks();
             calculateFuel();
             setInterval(updateClocks, 1000);
@@ -1089,6 +1148,7 @@
                 `;
                 grid.appendChild(card);
             });
+
             lucide.createIcons();
         }
 
@@ -1178,6 +1238,7 @@
                 selectStation(0);
                 return;
             }
+            const st = radioStations[currentStationIdx];
             if (isPlaying) {
                 isPlaying = false;
                 clearTimeout(streamTimeout);
@@ -1254,43 +1315,8 @@
         }
 
         // ==========================================
-        // ЛОГІКА МЕДІА / YOUTUBE (ОНОВЛЕНО)
+        // ЛОГІКА МЕДІА / YOUTUBE / MP4
         // ==========================================
-        function shuffleArray(arr) {
-            return arr.map(a => ({sort: Math.random(), value: a}))
-                .sort((a, b) => a.sort - b.sort)
-                .map(a => a.value);
-        }
-
-        function renderYtRecommendations() {
-            const grid = document.getElementById('yt-recs-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-            
-            const selected = shuffleArray(ytRecs).slice(0, 6);
-            
-            selected.forEach(vid => {
-                const img = `https://img.youtube.com/vi/${vid.id}/mqdefault.jpg`;
-                const card = document.createElement('button');
-                card.onclick = () => playYoutubePreset(vid.id, vid.title);
-                card.className = 'w-full text-left glass-card rounded-xl overflow-hidden flex flex-row items-center gap-3 hover:bg-slate-800/80 transition p-1.5 group';
-                
-                card.innerHTML = `
-                    <div class="relative w-24 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-800">
-                        <img src="${img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="thumb">
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
-                        <div class="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[9px] font-bold text-white shadow">PLAY</div>
-                    </div>
-                    <div class="min-w-0 flex-1 pr-2">
-                        <div class="text-xs font-bold text-white truncate group-hover:text-red-400 transition-colors">${vid.title}</div>
-                        <div class="text-[10px] text-slate-400 mt-1 truncate">${vid.channel}</div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-            lucide.createIcons();
-        }
-
         function pauseRadioForMedia() {
             if (isPlaying) {
                 isPlaying = false;
@@ -1307,26 +1333,38 @@
             currentMediaMode = mode;
             const ytBox = document.getElementById('youtube-container');
             const mp4Box = document.getElementById('mp4-container');
+            const fullYtBox = document.getElementById('full-yt-container');
+
             const btnYt = document.getElementById('btn-mode-youtube');
             const btnMp4 = document.getElementById('btn-mode-mp4');
+            const btnFullYt = document.getElementById('btn-mode-full-yt');
             const badge = document.getElementById('media-mode-badge');
+
+            // Скидаємо виділення кнопок
+            btnYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
+            btnMp4.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
+            btnFullYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
+
+            ytBox.classList.add('hidden');
+            mp4Box.classList.add('hidden');
+            fullYtBox.classList.add('hidden');
+            document.getElementById('car-mp4-video').pause();
 
             if (mode === 'youtube') {
                 ytBox.classList.remove('hidden');
-                mp4Box.classList.add('hidden');
-                document.getElementById('car-mp4-video').pause();
                 btnYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-red-600 text-white transition';
-                btnMp4.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
-                badge.textContent = 'YouTube Standard IFrame';
-            } else {
-                ytBox.classList.add('hidden');
+                badge.textContent = 'YouTube Embed (По відео)';
+            } else if (mode === 'mp4') {
                 mp4Box.classList.remove('hidden');
                 btnMp4.className = 'px-2.5 py-1 rounded-xl font-bold bg-emerald-600 text-white transition';
-                btnYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-slate-800 text-slate-300 hover:text-white transition';
                 badge.textContent = 'HTML5 MP4 Direct Stream';
                 pauseRadioForMedia();
-                const vid = document.getElementById('car-mp4-video');
-                vid.play().catch(() => {});
+                document.getElementById('car-mp4-video').play().catch(() => {});
+            } else if (mode === 'full-yt') {
+                fullYtBox.classList.remove('hidden');
+                btnFullYt.className = 'px-2.5 py-1 rounded-xl font-bold bg-red-600 text-white transition';
+                badge.textContent = 'Повноцінний сайт YouTube';
+                pauseRadioForMedia();
             }
         }
 
@@ -1547,7 +1585,7 @@
         }
 
         // ==========================================
-        // РЕЖИМИ РУХУ ТА ПРОЗОРІСТЬ/ОБОЇ (ОНОВЛЕНО)
+        // РЕЖИМИ РУХУ АВТО ТА ОБОЇ / НАЛАШТУВАННЯ
         // ==========================================
         function setDriveMode(mode) {
             const modes = ['ECO', 'COMFORT', 'SPORT'];
@@ -1570,63 +1608,77 @@
             showToast(`Режим руху: ${mode}`);
         }
 
-        function setWallpaperPreset(wpClass, label) {
-            const bg = document.getElementById('wallpaper-bg');
-            const vid = document.getElementById('live-wallpaper-video');
-            vid.classList.add('hidden');
-            vid.pause();
-
-            bg.style.backgroundImage = '';
-            bg.className = `${wpClass} w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500 z-0`;
-            showToast(`Обої: ${label}`);
-        }
-
-        function applyMediaBackground(url, isVideo) {
-            const bg = document.getElementById('wallpaper-bg');
-            const vid = document.getElementById('live-wallpaper-video');
-
-            if (isVideo) {
-                bg.style.backgroundImage = 'none';
-                bg.className = 'w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500 z-0';
-                vid.src = url;
-                vid.classList.remove('hidden');
-                vid.play().catch(() => showToast('Авто-відтворення відео заблоковано', 'text-amber-400'));
-                showToast('Живі обої (MP4) встановлено');
-            } else {
-                vid.classList.add('hidden');
-                vid.pause();
-                bg.style.backgroundImage = `url('${url}')`;
-                bg.className = 'w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500 z-0';
-                showToast('Власні обої встановлено');
+        // Функція зупинки відео-обоїв при виборі статичних
+        function hideLiveWallpaper() {
+            const video = document.getElementById('bg-video');
+            if (!video.classList.contains('hidden')) {
+                video.pause();
+                video.classList.add('hidden');
+                video.src = '';
             }
         }
 
-        function uploadCustomMedia(event) {
+        function setWallpaperPreset(wpClass, label) {
+            hideLiveWallpaper();
+            const bg = document.getElementById('wallpaper-bg');
+            bg.style.backgroundImage = '';
+            bg.style.backgroundColor = '';
+            bg.className = `${wpClass} w-full h-full bg-cover bg-center flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500`;
+            showToast(`Обої: ${label}`);
+        }
+
+        function uploadCustomWallpaper(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            hideLiveWallpaper();
+            const reader = new FileReader();
+            reader.onload = e => {
+                const bg = document.getElementById('wallpaper-bg');
+                bg.style.backgroundImage = `linear-gradient(rgba(5,8,15,0.45), rgba(5,8,15,0.6)), url('${e.target.result}')`;
+                showToast('Власні обої встановлено');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyCustomWallpaperUrl() {
+            const url = document.getElementById('custom-wp-url').value.trim();
+            if (!url) return;
+            hideLiveWallpaper();
+            const bg = document.getElementById('wallpaper-bg');
+            bg.style.backgroundImage = `linear-gradient(rgba(5,8,15,0.45), rgba(5,8,15,0.6)), url('${url}')`;
+            showToast('Обої за посиланням застосовано');
+        }
+
+        // Логіка відтворення живих обоїв (MP4)
+        function playLiveWallpaper(url) {
+            const video = document.getElementById('bg-video');
+            const bg = document.getElementById('wallpaper-bg');
+
+            video.src = url;
+            video.classList.remove('hidden');
+            video.play().catch(e => {
+                showToast('Помилка відтворення відео', 'text-rose-400');
+            });
+
+            // Видаляємо статичний фон щоб бачити відео
+            bg.className = 'w-full h-full flex flex-col md:flex-row p-2 sm:p-3 gap-2 sm:gap-3 overflow-hidden relative transition-all duration-500';
+            bg.style.backgroundImage = 'none';
+            bg.style.backgroundColor = 'transparent';
+
+            showToast('Живі обої застосовано');
+        }
+
+        function uploadLiveWallpaper(event) {
             const file = event.target.files[0];
             if (!file) return;
             const url = URL.createObjectURL(file);
-            const isVideo = file.type.startsWith('video/');
-            applyMediaBackground(url, isVideo);
+            playLiveWallpaper(url);
         }
 
-        function applyCustomMediaUrl() {
-            const url = document.getElementById('custom-wp-url').value.trim();
+        function applyLiveWallpaperUrl(overrideUrl = null) {
+            const url = overrideUrl || document.getElementById('live-wp-url').value.trim();
             if (!url) return;
-            const isVideo = url.toLowerCase().endsWith('.mp4');
-            applyMediaBackground(url, isVideo);
-        }
-
-        function setUiOpacity(val) {
-            const alphaPanel = (val / 100).toFixed(2);
-            const alphaCard = Math.max(0, (val / 100) - 0.1).toFixed(2);
-            
-            document.documentElement.style.setProperty('--glass-bg', `rgba(15, 23, 42, ${alphaPanel})`);
-            document.documentElement.style.setProperty('--glass-card-bg', `rgba(15, 23, 42, ${alphaCard})`);
-            
-            const blur = val < 30 ? '4px' : '18px';
-            document.documentElement.style.setProperty('--glass-blur', blur);
-
-            document.getElementById('opacity-label').textContent = `${val}%`;
+            playLiveWallpaper(url);
         }
 
         function setAccentColor(hex, glow, soft, notify = true) {
@@ -1639,6 +1691,14 @@
         function setScreenBrightness(val) {
             document.documentElement.style.setProperty('--brightness', val / 100);
             document.getElementById('brightness-label').textContent = `${val}%`;
+        }
+
+        // Функція для встановлення прозорості UI
+        function setInterfaceOpacity(val) {
+            document.documentElement.style.setProperty('--glass-op', val / 100);
+            document.documentElement.style.setProperty('--card-op', Math.max(0, val - 10) / 100); // Картки трохи прозоріші за головну панель
+            document.documentElement.style.setProperty('--card-hover-op', val / 100);
+            document.getElementById('opacity-label').textContent = `${val}%`;
         }
 
         let isLargeScale = false;
